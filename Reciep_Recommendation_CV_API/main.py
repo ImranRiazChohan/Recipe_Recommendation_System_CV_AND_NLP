@@ -1,8 +1,8 @@
 from fastapi import FastAPI, UploadFile
-import torch
+#import torch
 from PIL import Image
 from io import BytesIO
-from torchvision.transforms import functional as F
+#from torchvision.transforms import functional as F
 from ultralytics import YOLO
 import uvicorn
 
