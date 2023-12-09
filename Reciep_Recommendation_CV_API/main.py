@@ -1,13 +1,9 @@
-from fastapi import FastAPI, UploadFile
-#import torch
+from fastapi import FastAPI, UploadFile, HTTPException
 from PIL import Image
 from io import BytesIO
-#from torchvision.transforms import functional as F
+from torchvision.transforms import functional as F
 from ultralytics import YOLO
 import uvicorn
-
-#authtoken when we run this on colab
-# ngrok.set_auth_token("2UKtYINTgMazz0tJqJajnT70HWZ_5frzbJuUMaUPSJzwPtKiy")
 
 app = FastAPI()
 
@@ -20,23 +16,31 @@ async def ingredient_detection(input_file: UploadFile):
     image.save("temp_image.jpg")
 
     # Load the YOLOv5 model
-    model = YOLO("best.pt")
+    try:
+        model = YOLO("best.pt")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Model loading failed")
 
     # Perform object detection
-    results = model("temp_image.jpg")[0]
+    try:
+        results = model("temp_image.jpg")[0]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Object detection failed")
 
     # Extract ingredient labels from the results
-    list_of_ingredients=[]
-    for r in results[0].boxes.data.tolist():
-        x1,y1,x2,y2,score,cls=r
-        cls=int(cls)
-        if cls in results[0].names:
-          label=results[0].names[cls]
-          list_of_ingredients.append(label)
-    print(list_of_ingredients)
+    list_of_ingredients = []
+    if results:
+        for r in results[0].boxes.data.tolist():
+            x1, y1, x2, y2, score, cls = r
+            cls = int(cls)
+            if cls in results[0].names:
+                label = results[0].names[cls]
+                list_of_ingredients.append(label)
+    else:
+        print("No results found.")
+        # You can return a specific message or handle as needed
 
     return {"Detected Ingredients": list_of_ingredients}
 
-
 if __name__ == "__main__":
-    uvicorn.run(app,port=8000)
+    uvicorn.run(app, port=8000)
