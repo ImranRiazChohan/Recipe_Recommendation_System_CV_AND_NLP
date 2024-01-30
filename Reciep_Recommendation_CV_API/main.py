@@ -17,7 +17,7 @@ async def ingredient_detection(input_file: UploadFile):
 
     # Load the YOLOv5 model
     try:
-        model = YOLO("best.pt")
+        model = YOLO("best_1.pt")
     except Exception as e:
         raise HTTPException(status_code=500, detail="Model loading failed")
 
